@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_clean_architecture/feature/domain/entities/person_entity.dart';
 
 abstract class PersonSearchEvent extends Equatable {
   const PersonSearchEvent();
@@ -9,6 +10,7 @@ abstract class PersonSearchEvent extends Equatable {
 
 class SearchPersons extends PersonSearchEvent {
   final String personQuery;
+  final List<PersonEntity> oldPersons;
 
-  const SearchPersons({required this.personQuery});
+  const SearchPersons({required this.personQuery, required this.oldPersons});
 }

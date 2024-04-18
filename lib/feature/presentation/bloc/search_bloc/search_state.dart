@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_clean_architecture/feature/domain/entities/person_entity.dart';
 
-abstract class PersonSearchState extends Equatable{
+abstract class PersonSearchState extends Equatable {
   const PersonSearchState();
 
   @override

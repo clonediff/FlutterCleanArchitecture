@@ -41,7 +41,7 @@ class CustomSearchDelegate extends SearchDelegate {
   Widget buildResults(BuildContext context) {
     print('Inside custom search delegate and search query is $query');
     BlocProvider.of<PersonSearchBloc>(context, listen: false)
-        .add(SearchPersons(personQuery: query));
+        .add(SearchPersons(personQuery: query, oldPersons: const []));
     return BlocBuilder<PersonSearchBloc, PersonSearchState>(
       builder: (context, state) {
         switch (state) {

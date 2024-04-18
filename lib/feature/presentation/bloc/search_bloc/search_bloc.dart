@@ -16,23 +16,27 @@ class PersonSearchBloc extends Bloc<PersonSearchEvent, PersonSearchState> {
     on<SearchPersons>(_mapFetchPersonsToState);
   }
 
+  int page = 1;
   FutureOr<void> _mapFetchPersonsToState(
       SearchPersons event, Emitter<PersonSearchState> emit) async {
     emit(PersonSearchLoading());
 
-    final failureOrPerson =
-        await searchPersons(SearchPersonParams(query: event.personQuery));
+    final failureOrPerson = await searchPersons(
+        SearchPersonParams(query: event.personQuery, page: page));
 
     emit(
       failureOrPerson.fold(
         (failure) => PersonSearchError(message: _mapFailureToMessage(failure)),
-        (persons) => PersonSearchLoaded(persons: persons),
+        (persons) {
+          page++;
+          return PersonSearchLoaded(persons: [...event.oldPersons, ...persons]);
+        },
       ),
     );
   }
 
   String _mapFailureToMessage(Failure failure) {
-    switch(failure) {
+    switch (failure) {
       case ServerFailure serverFailure:
         return SERVER_FAILURE_MESSAGE;
       case CacheFailure cacheFailure:
