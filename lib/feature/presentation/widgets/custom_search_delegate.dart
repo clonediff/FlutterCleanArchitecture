@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_clean_architecture/feature/domain/entities/person_entity.dart';
 import 'package:flutter_clean_architecture/feature/presentation/bloc/search_bloc/search_bloc.dart';
 import 'package:flutter_clean_architecture/feature/presentation/bloc/search_bloc/search_event.dart';
 import 'package:flutter_clean_architecture/feature/presentation/bloc/search_bloc/search_state.dart';
@@ -7,6 +10,20 @@ import 'package:flutter_clean_architecture/feature/presentation/widgets/search_r
 
 class CustomSearchDelegate extends SearchDelegate {
   CustomSearchDelegate() : super(searchFieldLabel: 'Search for characters...');
+
+  void setupController(ScrollController scrollController, BuildContext context,
+      PersonSearchLoaded personSearchLoaded, String query) {
+    scrollController.addListener(() {
+      if (scrollController.position.atEdge &&
+          scrollController.position.pixels != 0) {
+        context.read<PersonSearchBloc>().add(SearchPersons(
+              oldPersons: personSearchLoaded.persons,
+              page: personSearchLoaded.page + 1,
+              personQuery: query,
+            ));
+      }
+    });
+  }
 
   final List<String> _suggestions = [
     'Rick',
@@ -41,25 +58,26 @@ class CustomSearchDelegate extends SearchDelegate {
   Widget buildResults(BuildContext context) {
     print('Inside custom search delegate and search query is $query');
     BlocProvider.of<PersonSearchBloc>(context, listen: false)
-        .add(SearchPersons(personQuery: query));
+        .add(SearchPersons(personQuery: query, page: 1, oldPersons: const []));
     return BlocBuilder<PersonSearchBloc, PersonSearchState>(
       builder: (context, state) {
+        List<PersonEntity> persons = [];
+        bool isLoading = false;
+        ScrollController scrollController = ScrollController();
         switch (state) {
-          case PersonSearchLoading _:
+          case PersonSearchLoading personSearchLoading
+              when personSearchLoading.oldPerson.isEmpty:
             return const Center(
               child: CircularProgressIndicator(),
             );
+          case PersonSearchLoading personSearchLoading:
+            persons = personSearchLoading.oldPerson;
+            isLoading = true;
+            break;
           case PersonSearchLoaded personSearchLoaded:
-            return Container(
-              child: personSearchLoaded.persons.isEmpty
-                  ? _showErrorText('No Characters with that name found')
-                  : ListView.builder(
-                      itemBuilder: (context, index) => SearchResult(
-                        personResult: personSearchLoaded.persons[index],
-                      ),
-                      itemCount: personSearchLoaded.persons.length,
-                    ),
-            );
+            persons = personSearchLoaded.persons;
+            setupController(scrollController, context, personSearchLoaded, query);
+            break;
           case PersonSearchError personSearchError:
             return _showErrorText(personSearchError.message);
           default:
@@ -67,6 +85,29 @@ class CustomSearchDelegate extends SearchDelegate {
               child: Icon(Icons.now_wallpaper),
             );
         }
+
+        return Container(
+          child: persons.isEmpty
+              ? _showErrorText('No Characters with that name found')
+              : ListView.builder(
+                  itemBuilder: (context, index) {
+                    if (index == persons.length) {
+                      Timer(const Duration(milliseconds: 30), () {
+                        scrollController
+                            .jumpTo(scrollController.position.maxScrollExtent);
+                      });
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    return SearchResult(
+                      personResult: persons[index],
+                    );
+                  },
+                  itemCount: persons.length + (isLoading ? 1 : 0),
+                  controller: scrollController,
+                ),
+        );
       },
     );
   }

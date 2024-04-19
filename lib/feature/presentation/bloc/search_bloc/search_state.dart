@@ -10,12 +10,20 @@ abstract class PersonSearchState extends Equatable{
 
 class PersonEmpty extends PersonSearchState {}
 
-class PersonSearchLoading extends PersonSearchState {}
+class PersonSearchLoading extends PersonSearchState {
+  final List<PersonEntity> oldPerson;
+
+  const PersonSearchLoading({required this.oldPerson});
+
+  @override
+  List<Object?> get props => [oldPerson];
+}
 
 class PersonSearchLoaded extends PersonSearchState {
   final List<PersonEntity> persons;
+  final int page;
 
-  const PersonSearchLoaded({required this.persons});
+  const PersonSearchLoaded({required this.persons, required this.page});
 
   @override
   List<Object?> get props => [persons];

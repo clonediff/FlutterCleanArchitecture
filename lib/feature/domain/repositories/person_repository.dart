@@ -4,5 +4,5 @@ import 'package:flutter_clean_architecture/feature/domain/entities/person_entity
 
 abstract class PersonRepository {
   Future<Either<Failure, List<PersonEntity>>> getAllPersons(int page);
-  Future<Either<Failure, List<PersonEntity>>> searchPerson(String query);
+  Future<Either<Failure, List<PersonEntity>>> searchPerson(String query, int page);
 }

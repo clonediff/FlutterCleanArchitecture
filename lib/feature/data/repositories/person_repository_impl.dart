@@ -23,7 +23,7 @@ class PersonRepositoryImpl implements PersonRepository {
   Future<Either<Failure, List<PersonEntity>>> getAllPersons(int page) => _getPersons(() => remoteDataSource.getAllPersons(page));
 
   @override
-  Future<Either<Failure, List<PersonEntity>>> searchPerson(String query) => _getPersons(() => remoteDataSource.searchPerson(query));
+  Future<Either<Failure, List<PersonEntity>>> searchPerson(String query, int page) => _getPersons(() => remoteDataSource.searchPerson(query, page));
 
   Future<Either<Failure, List<PersonEntity>>> _getPersons(Future<List<PersonModel>> Function() getPersons) async {
     try {

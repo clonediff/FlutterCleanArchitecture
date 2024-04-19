@@ -10,29 +10,32 @@ const String SERVER_FAILURE_MESSAGE = 'Server Failure';
 const String CACHE_FAILURE_MESSAGE = 'Cache Failure';
 
 class PersonSearchBloc extends Bloc<PersonSearchEvent, PersonSearchState> {
-  final SearchPerson searchPersons;
+  final SearchPerson _searchPersons;
 
-  PersonSearchBloc({required this.searchPersons}) : super(PersonEmpty()) {
+  PersonSearchBloc({required SearchPerson searchPersons})
+      : _searchPersons = searchPersons,
+        super(PersonEmpty()) {
     on<SearchPersons>(_mapFetchPersonsToState);
   }
 
   FutureOr<void> _mapFetchPersonsToState(
       SearchPersons event, Emitter<PersonSearchState> emit) async {
-    emit(PersonSearchLoading());
+    emit(PersonSearchLoading(oldPerson: event.oldPersons));
 
-    final failureOrPerson =
-        await searchPersons(SearchPersonParams(query: event.personQuery));
+    final failureOrPerson = await _searchPersons(
+        SearchPersonParams(query: event.personQuery, page: event.page));
 
     emit(
       failureOrPerson.fold(
         (failure) => PersonSearchError(message: _mapFailureToMessage(failure)),
-        (persons) => PersonSearchLoaded(persons: persons),
+        (persons) => PersonSearchLoaded(
+            persons: [...event.oldPersons, ...persons], page: event.page),
       ),
     );
   }
 
   String _mapFailureToMessage(Failure failure) {
-    switch(failure) {
+    switch (failure) {
       case ServerFailure serverFailure:
         return SERVER_FAILURE_MESSAGE;
       case CacheFailure cacheFailure:
